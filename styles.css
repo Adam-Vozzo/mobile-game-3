@@ -190,34 +190,34 @@ body::before {
   position: absolute;
   top: var(--orbit-cy, 50%);
   left: var(--orbit-cx, 50%);
-  font-size: 17px;
+  font-size: 14px;
   line-height: 1;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,.35));
+  filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.35));
   will-change: transform;
   transform:
     translate(-50%, -50%)
     rotate(var(--angle, 0deg))
-    translateY(calc(-1 * var(--orbit-r, 120px)))
+    translateY(calc(-1 * var(--orbit-r, 100px)))
     rotate(calc(-1 * var(--angle, 0deg)));
   animation: orbiterNudge var(--dur, 5s) ease-out infinite;
   animation-delay: var(--delay, 0s);
 }
-.orbiter[data-ring="0"] { --orbit-r: var(--orbit-r0, 120px); }
-.orbiter[data-ring="1"] { --orbit-r: var(--orbit-r1, 138px); }
+.orbiter[data-ring="0"] { --orbit-r: var(--orbit-r0, 100px); }
+.orbiter[data-ring="1"] { --orbit-r: var(--orbit-r1, 112px); }
 @keyframes orbiterNudge {
   0%, 88%, 100% {
     transform:
       translate(-50%, -50%)
       rotate(var(--angle, 0deg))
-      translateY(calc(-1 * var(--orbit-r, 120px)))
+      translateY(calc(-1 * var(--orbit-r, 100px)))
       rotate(calc(-1 * var(--angle, 0deg)));
   }
   93% {
     transform:
       translate(-50%, -50%)
       rotate(var(--angle, 0deg))
-      translateY(calc(-1 * (var(--orbit-r, 120px) - 14px)))
-      scale(1.18)
+      translateY(calc(-1 * (var(--orbit-r, 100px) - 12px)))
+      scale(1.2)
       rotate(calc(-1 * var(--angle, 0deg)));
   }
 }

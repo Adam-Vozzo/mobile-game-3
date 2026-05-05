@@ -573,7 +573,7 @@ function rebuildLists() {
    rings of 12 we stop adding visible worms (the count keeps climbing
    in the helpers list). Each worm completes one nudge per word it
    would read at its base output rate (5s default, 2.5s with school).  */
-const PER_RING  = 12;
+const PER_RING  = 36;
 const MAX_RINGS = 2;
 const MAX_WORMS = PER_RING * MAX_RINGS;
 
@@ -602,10 +602,14 @@ function renderOrbiters() {
     renderedWormDur = dur;
   }
   // Append only the new worms, leaving the existing ones in place.
+  // Delay is slot-based (not ring-based) so each ring runs its own
+  // independent clockwise wave at the same cadence — ring 0 fires
+  // 1→2→3→… around, and ring 1 does the same on its own track.
   for (let i = renderedWormCount; i < n; i++) {
     const ring  = Math.floor(i / PER_RING);
+    const slot  = i % PER_RING;
     const angle = angleForWormIndex(i);
-    const delay = (angle / 360) * dur;
+    const delay = (slot / PER_RING) * dur;
     const el = document.createElement('div');
     el.className = 'orbiter';
     el.dataset.ring = ring;
@@ -631,9 +635,9 @@ function setupOrbitGeometry() {
     const cy = Math.round(br.top  - sr.top  + br.height / 2);
     document.documentElement.style.setProperty('--orbit-cx', cx + 'px');
     document.documentElement.style.setProperty('--orbit-cy', cy + 'px');
-    const baseR = Math.round(br.width / 2 + 10);      // hugs the book
+    const baseR = Math.round(br.width / 2 + 4);       // ring 0 hugs the book
     document.documentElement.style.setProperty('--orbit-r0', baseR + 'px');
-    document.documentElement.style.setProperty('--orbit-r1', (baseR + 16) + 'px');
+    document.documentElement.style.setProperty('--orbit-r1', (baseR + 12) + 'px');
   };
   apply();
   if (typeof ResizeObserver !== 'undefined') {
