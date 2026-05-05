@@ -147,6 +147,57 @@ const BOOK_TITLES = [
   'The Sound of Silent Reading',
   'Lolita’s Long Library Card',
   'A Room of One’s Own (With Wi-Fi)',
+  // ── round two ─────────────────────────────────
+  'The Restaurant at the End of the Library',
+  'Where the Wild Bookmarks Are',
+  'The Fault in Our Margins',
+  'A Wrinkle in Page 47',
+  'Charlotte’s Wi-Fi Web',
+  'Eat, Pray, Procrastinate',
+  'The Devil Wears Index Cards',
+  'The Da Vinci Notebook',
+  'Animal Farm (Now with Audiobook)',
+  'Sense and Subtitles',
+  'Cat’s Cradle of Half-Read Books',
+  'I, Annotator',
+  'A Clockwork Bookmark',
+  'The Wind in the Wi-Fi',
+  'Dr. Jekyll and Mr. Hyperlink',
+  'All Quiet on the Reading Couch',
+  'The Curious Incident of the Dog-Eared Page',
+  'Eleanor Oliphant Is Completely Unread',
+  'Where’d You Go, Bookmark?',
+  'Big Little Pages',
+  'The Five People You Meet in the Stacks',
+  'The Help (with Reshelving)',
+  'Educated (Eventually)',
+  'The Time Traveler’s TBR',
+  'Cloud Atlas (Free with Subscription)',
+  'Tess of the d’Urbookshelves',
+  'The Hunchback of Notre Bookshop',
+  'Bridge to TBR-abithia',
+  'The Adventures of Huckleberry Highlight',
+  'The Goldfinch (a Brief Distraction)',
+  'Of Human Bondage (Library Card)',
+  'The Master and Marginalia',
+  'Three Men in a Library',
+  'The Sun Also Skims',
+  'Brideshead Reread',
+  'Howards End-of-Chapter',
+  'Persuasion (Now Available as a Calendar)',
+  'Northanger Library Card',
+  'Doctor Zhivago’s Reading Nook',
+  'Mrs. Dalloway Will Read the Book Herself',
+  'Their Eyes Were Watching Pages',
+  'The Quiet American Reader',
+  'Native Sons of Marginalia',
+  'The Magic Mountain of Unread Books',
+  'Daisy Miller’s Bookmarks',
+  'Charlie and the E-Book Factory',
+  'James and the Giant Footnote',
+  'Matilda Goes to Library School',
+  'Fantastic Books and Where to Find Them',
+  'The Reluctant Reader’s Reading List',
 ];
 
 const ACHIEVEMENTS = [
@@ -642,6 +693,7 @@ function renderOwned() {
 function renderShelf() {
   shelfList.innerHTML = '';
   if (state.books.length === 0) {
+    shelfList.classList.remove('has-books');
     for (let i = 0; i < 8; i++) {
       const li = document.createElement('li');
       li.className = 'empty';
@@ -649,16 +701,40 @@ function renderShelf() {
     }
     return;
   }
+  shelfList.classList.add('has-books');
   // show most recent first, cap to 200 for performance
   const slice = state.books.slice(-200).reverse();
   for (const t of slice) {
     const li = document.createElement('li');
     li.title = t;
-    li.textContent = t.length > 28 ? t.slice(0, 27) + '…' : t;
+    // class drives font-size; max characters per pre-split "line" follows
+    let maxLen;
+    if (t.length > 30)      { li.classList.add('very-long'); maxLen = 14; }
+    else if (t.length > 22) { li.classList.add('long');      maxLen = 13; }
+    else                    {                                maxLen = 13; }
     li.style.background = bookSpineColor(t);
-    li.style.height = (70 + (hash(t) % 40)) + 'px';
+    const lines = splitSpineTitle(t, maxLen);
+    for (let i = 0; i < lines.length; i++) {
+      if (i > 0) li.appendChild(document.createElement('br'));
+      li.appendChild(document.createTextNode(lines[i]));
+    }
     shelfList.appendChild(li);
   }
+}
+// Greedy word-pack into vertical lines of at most `maxLen` characters.
+// Single words longer than `maxLen` become their own line; CSS
+// `overflow-wrap: anywhere` then breaks them mid-word as a last resort.
+function splitSpineTitle(t, maxLen) {
+  if (t.length <= maxLen) return [t];
+  const lines = [];
+  let line = '';
+  for (const w of t.split(' ')) {
+    if (line === '')                                 line = w;
+    else if (line.length + 1 + w.length <= maxLen)   line += ' ' + w;
+    else { lines.push(line); line = w; }
+  }
+  if (line) lines.push(line);
+  return lines;
 }
 function hash(s) {
   let h = 0;
