@@ -490,6 +490,7 @@ function rebuildLists() {
   listSignature = listsSignature();
   renderHelpers();
   renderUpgrades();
+  renderOwned();
   renderShelf();
 }
 
@@ -572,6 +573,7 @@ function renderUpgrades() {
     li.addEventListener('click', () => {
       if (buyUpgrade(u)) {
         renderUpgrades();
+        renderOwned();
         renderHelpers(); // mult changes affect helper meta too
       }
     });
@@ -583,6 +585,38 @@ function renderUpgrades() {
     li.style.padding = '12px';
     li.textContent = 'Read more to unlock upgrades.';
     upgradesList.appendChild(li);
+  }
+}
+
+function renderOwned() {
+  const wrap  = document.getElementById('owned');
+  const strip = document.getElementById('ownedStrip');
+  const count = document.getElementById('ownedCount');
+  if (!wrap || !strip) return;
+  const owned = UPGRADES.filter(u => state.upgrades[u.id]);
+  if (owned.length === 0) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+  count.textContent = owned.length;
+  strip.innerHTML = '';
+  // group order: tap, mult, helperMult — same as UPGRADES already
+  for (const u of owned) {
+    const c = document.createElement('div');
+    c.className = 'owned-chip';
+    c.dataset.kind = u.kind;
+    let detail;
+    if (u.kind === 'tap')             detail = `+${fmt(u.wpc)} / tap`;
+    else if (u.kind === 'mult')       detail = `×${u.x} all`;
+    else if (u.kind === 'helperMult') {
+      const h = HELPERS.find(x => x.id === u.helper);
+      detail = `×${u.x} ${h ? h.name : 'helper'}`;
+    }
+    c.title = `${u.name} — ${u.desc} (${detail})`;
+    c.setAttribute('aria-label', c.title);
+    c.innerHTML =
+      `<span class="ico">${u.icon}</span>` +
+      `<span>${u.name}</span>`;
+    c.addEventListener('click', () => toast(`${u.icon} ${u.name} · ${detail}`));
+    strip.appendChild(c);
   }
 }
 

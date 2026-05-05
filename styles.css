@@ -25,7 +25,6 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
   --tab-h: 64px;
-  --panel-h: min(56vh, 460px);
   --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
   --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
@@ -69,11 +68,14 @@ body {
     var(--bg);
   background-attachment: fixed;
   display: grid;
-  grid-template-rows: auto 1fr auto var(--panel-h);
+  /* topbar · stage · tabs · panel(scrollable) */
+  grid-template-rows: auto auto auto minmax(140px, 1fr);
   height: 100dvh;
   padding-top: var(--safe-top);
   font-size: 16px;
   line-height: 1.45;
+  overflow: hidden;            /* never let the page itself scroll */
+  overscroll-behavior: none;
 }
 
 /* subtle paper grain */
@@ -130,16 +132,19 @@ body::before {
 .stage {
   position: relative;
   display: grid;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: auto auto;
   align-items: center;
   justify-items: center;
   padding: 4px 16px 8px;
   z-index: 1;
+  min-height: 0;
 }
 .book {
   -webkit-appearance: none; appearance: none;
   border: 0; background: transparent; padding: 0; margin: 0;
-  width: min(72vw, 320px); aspect-ratio: 1 / 1;
+  /* sized so the book + topbar + tabs + a usable panel always fit one screen */
+  width: min(58vw, 34svh, 280px);
+  aspect-ratio: 1 / 1;
   display: grid; place-items: center;
   cursor: pointer; touch-action: manipulation;
   transition: transform 80ms ease;
@@ -268,10 +273,12 @@ body::before {
   background: var(--paper);
   border-top: 1px solid var(--line);
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: 10px 14px calc(14px + var(--safe-bottom));
   z-index: 2;
   position: relative;
+  min-height: 0;
 }
 .panel-page.hidden { display: none; }
 .panel-head { padding: 4px 4px 8px; }
@@ -375,6 +382,53 @@ body::before {
 @media (prefers-color-scheme: dark) {
   .item .badge { color: #1a1410; }
 }
+
+/* ── owned upgrades strip ──────────────────── */
+.owned {
+  margin: 4px 0 10px;
+}
+.owned-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 2px 4px;
+}
+.owned-strip {
+  display: flex; gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px 8px;
+  border-bottom: 1px dashed var(--line);
+}
+.owned-strip::-webkit-scrollbar { display: none; }
+.owned-chip {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px 4px 4px;
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+  font-family: var(--serif);
+  letter-spacing: -0.005em;
+  box-shadow: var(--shadow);
+  cursor: default;
+  transition: transform .08s;
+}
+.owned-chip:active { transform: scale(.97); }
+.owned-chip .ico {
+  width: 24px; height: 24px;
+  display: grid; place-items: center;
+  background: var(--paper-2);
+  border-radius: 50%;
+  font-size: 14px;
+}
+.owned-chip[data-kind="mult"]       { border-color: var(--accent); }
+.owned-chip[data-kind="helperMult"] { border-color: var(--accent-2); }
 
 /* ── shelf ─────────────────────────────────── */
 .shelf {
@@ -556,21 +610,26 @@ body.reduce-motion .book.tap { animation: none !important; }
 
 /* ── narrow tweaks ─────────────────────────── */
 @media (max-height: 720px) {
-  :root { --panel-h: min(50vh, 380px); --tab-h: 56px; }
+  :root { --tab-h: 56px; }
   .counter-value { font-size: 30px; }
-  .book { width: min(58vw, 240px); }
+  .book { width: min(54vw, 30svh, 240px); }
 }
 @media (max-height: 600px) {
-  :root { --panel-h: min(46vh, 320px); }
-  .book { width: min(48vw, 200px); }
+  .book { width: min(48vw, 28svh, 200px); }
   .progress { display: none; }
+}
+@media (max-height: 520px) {
+  .book { width: min(42vw, 24svh, 170px); }
+  .topbar { padding-top: 6px; padding-bottom: 2px; }
+  .counter-unit { display: none; }
 }
 
 /* desktop niceties */
 @media (min-width: 720px) {
   body {
     grid-template-columns: 1fr min(640px, 92vw) 1fr;
-    grid-template-rows: auto 1fr auto var(--panel-h);
+    grid-template-rows: auto auto auto minmax(140px, 1fr);
   }
   .topbar, .stage, .tabs, .panel { grid-column: 2; }
+  .book { width: min(40vw, 38svh, 280px); }
 }
