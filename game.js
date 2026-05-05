@@ -567,45 +567,81 @@ function rebuildLists() {
 }
 
 /* ── bookworm orbiters ────────────────────── */
-/* Ring of bookworms around the book that take turns nudging inward,
-   like Cookie Clicker's cursors. Capped at 20 visible. */
-const ORBIT_DUR = 1.6;
-const ORBIT_MAX = 20;
-let orbiterCount = -1;
+/* A ring of bookworms around the book that take turns nudging inward,
+   like Cookie Clicker's cursors. Each worm has a fixed slot — buying
+   another never shifts the ones already on the ring. After two full
+   rings of 12 we stop adding visible worms (the count keeps climbing
+   in the helpers list). Each worm completes one nudge per word it
+   would read at its base output rate (5s default, 2.5s with school).  */
+const PER_RING  = 12;
+const MAX_RINGS = 2;
+const MAX_WORMS = PER_RING * MAX_RINGS;
+
+let renderedWormCount = 0;
+let renderedWormDur   = 0;
+
+function wormPeriod() {
+  const base = 0.2;                                   // bookworm base wps
+  const school = state.upgrades['h_worm'] ? 2 : 1;
+  return 1 / (base * school);                         // seconds per word
+}
+function angleForWormIndex(i) {
+  const ring = Math.floor(i / PER_RING);
+  const slot = i % PER_RING;
+  // outer ring is offset by half a slot so worms interleave visually
+  return slot * (360 / PER_RING) + ring * (180 / PER_RING);
+}
 function renderOrbiters() {
   if (!orbitersEl) return;
-  const n = Math.min(ORBIT_MAX, helperCount('worm'));
-  if (n === orbiterCount) return;
-  orbiterCount = n;
-  orbitersEl.innerHTML = '';
-  if (n === 0) return;
-  for (let i = 0; i < n; i++) {
-    const ang = (i / n) * 360;
-    const delay = (i / n) * ORBIT_DUR;
+  const n = Math.min(MAX_WORMS, helperCount('worm'));
+  const dur = wormPeriod();
+  // Period change (school upgrade) or count drop (prestige) → rebuild.
+  if (dur !== renderedWormDur || n < renderedWormCount) {
+    orbitersEl.innerHTML = '';
+    renderedWormCount = 0;
+    renderedWormDur = dur;
+  }
+  // Append only the new worms, leaving the existing ones in place.
+  for (let i = renderedWormCount; i < n; i++) {
+    const ring  = Math.floor(i / PER_RING);
+    const angle = angleForWormIndex(i);
+    const delay = (angle / 360) * dur;
     const el = document.createElement('div');
     el.className = 'orbiter';
+    el.dataset.ring = ring;
     el.textContent = '🪱';
-    el.style.setProperty('--angle', ang.toFixed(2) + 'deg');
+    el.style.setProperty('--angle', angle.toFixed(2) + 'deg');
     el.style.setProperty('--delay', delay.toFixed(3) + 's');
-    el.style.setProperty('--dur',   ORBIT_DUR + 's');
+    el.style.setProperty('--dur',   dur + 's');
     orbitersEl.appendChild(el);
   }
+  renderedWormCount = n;
 }
-function setupOrbitRadius() {
-  const apply = (w) => {
-    if (w > 0) {
-      // ring sits a touch outside the book's edge
-      document.documentElement.style.setProperty('--orbit-r',
-        Math.round(w / 2 + 22) + 'px');
-    }
+/* Keep the ring centered on the book (not the stage) so the bottom
+   worms don't reach into the progress bar, and resize as the book
+   grows/shrinks across viewports. */
+function setupOrbitGeometry() {
+  const stage = document.querySelector('.stage');
+  if (!stage || !bookEl) return;
+  const apply = () => {
+    const sr = stage.getBoundingClientRect();
+    const br = bookEl.getBoundingClientRect();
+    if (sr.width <= 0 || br.width <= 0) return;
+    const cx = Math.round(br.left - sr.left + br.width / 2);
+    const cy = Math.round(br.top  - sr.top  + br.height / 2);
+    document.documentElement.style.setProperty('--orbit-cx', cx + 'px');
+    document.documentElement.style.setProperty('--orbit-cy', cy + 'px');
+    const baseR = Math.round(br.width / 2 + 10);      // hugs the book
+    document.documentElement.style.setProperty('--orbit-r0', baseR + 'px');
+    document.documentElement.style.setProperty('--orbit-r1', (baseR + 16) + 'px');
   };
-  apply(bookEl.getBoundingClientRect().width);
+  apply();
   if (typeof ResizeObserver !== 'undefined') {
-    new ResizeObserver(es => { for (const e of es) apply(e.contentRect.width); })
-      .observe(bookEl);
+    const ro = new ResizeObserver(apply);
+    ro.observe(bookEl);
+    ro.observe(stage);
   } else {
-    window.addEventListener('resize',
-      () => apply(bookEl.getBoundingClientRect().width));
+    window.addEventListener('resize', apply);
   }
 }
 
@@ -691,6 +727,7 @@ function renderUpgrades() {
         renderUpgrades();
         renderOwned();
         renderHelpers(); // mult changes affect helper meta too
+        if (u.id === 'h_worm') renderOrbiters(); // re-time the ring
       }
     });
     upgradesList.appendChild(li);
@@ -1143,7 +1180,7 @@ function init() {
   bindToggle('setHaptics', 'haptics');
   bindToggle('setReduceMotion', 'reduceMotion');
   bindToggle('setFloaters', 'floaters');
-  setupOrbitRadius();
+  setupOrbitGeometry();
   rebuildLists();
   if (had) applyOfflineProgress();
   displayedWords = state.words;
