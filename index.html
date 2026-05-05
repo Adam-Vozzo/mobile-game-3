@@ -62,22 +62,36 @@
       <!-- pages stack -->
       <rect x="36" y="40" width="168" height="152" rx="3" fill="url(#page2)"/>
       <rect x="40" y="44" width="160" height="144" rx="3" fill="url(#page)"/>
-      <!-- page lines -->
+      <!-- spine groove down the gutter -->
+      <rect x="116" y="40" width="8" height="152" fill="#3a1707" opacity=".28"/>
+      <!-- subtle inner-page shadow either side of the gutter -->
+      <rect x="112" y="44" width="4" height="144" fill="#a08858" opacity=".22"/>
+      <rect x="124" y="44" width="4" height="144" fill="#a08858" opacity=".22"/>
+      <!-- page text lines, kept inside each page (no crossing the gutter) -->
       <g stroke="#a08858" stroke-width="2" stroke-linecap="round" opacity=".55">
-        <line x1="56" y1="64"  x2="116" y2="64"/>
-        <line x1="56" y1="76"  x2="180" y2="76"/>
-        <line x1="56" y1="88"  x2="172" y2="88"/>
-        <line x1="56" y1="100" x2="180" y2="100"/>
-        <line x1="56" y1="112" x2="148" y2="112"/>
-        <line x1="56" y1="124" x2="180" y2="124"/>
-        <line x1="56" y1="136" x2="168" y2="136"/>
-        <line x1="56" y1="148" x2="180" y2="148"/>
-        <line x1="56" y1="160" x2="124" y2="160"/>
+        <!-- left page (x: 48 → 110, with a paragraph indent on the first line) -->
+        <line x1="56"  y1="62"  x2="110" y2="62"/>
+        <line x1="48"  y1="74"  x2="110" y2="74"/>
+        <line x1="48"  y1="86"  x2="106" y2="86"/>
+        <line x1="48"  y1="98"  x2="110" y2="98"/>
+        <line x1="48"  y1="110" x2="100" y2="110"/>
+        <line x1="48"  y1="122" x2="110" y2="122"/>
+        <line x1="48"  y1="134" x2="104" y2="134"/>
+        <line x1="48"  y1="146" x2="108" y2="146"/>
+        <line x1="48"  y1="158" x2="80"  y2="158"/>
+        <!-- right page (x: 132 → 192, with a paragraph indent on the first line) -->
+        <line x1="140" y1="62"  x2="192" y2="62"/>
+        <line x1="132" y1="74"  x2="192" y2="74"/>
+        <line x1="132" y1="86"  x2="190" y2="86"/>
+        <line x1="132" y1="98"  x2="192" y2="98"/>
+        <line x1="132" y1="110" x2="184" y2="110"/>
+        <line x1="132" y1="122" x2="192" y2="122"/>
+        <line x1="132" y1="134" x2="188" y2="134"/>
+        <line x1="132" y1="146" x2="192" y2="146"/>
+        <line x1="132" y1="158" x2="160" y2="158"/>
       </g>
-      <!-- spine -->
-      <rect x="116" y="40" width="8" height="152" fill="#3a1707" opacity=".35"/>
-      <!-- ribbon -->
-      <path d="M168 40 v60 l-10 -10 l-10 10 v-60 z" fill="#b3793b"/>
+      <!-- bookmark ribbon, threaded through the gutter -->
+      <path d="M114 40 L114 112 L120 104 L126 112 L126 40 Z" fill="#b3793b"/>
     </svg>
     <span class="book-hint">tap to read</span>
   </button>

@@ -338,10 +338,16 @@ body::before {
   letter-spacing: -0.01em;
 }
 .item .count {
-  margin-left: auto;
-  font-size: 12px;
+  margin-left: 6px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .02em;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+.item .badge {
+  margin-left: auto;
 }
 .item .desc {
   color: var(--muted);
@@ -398,8 +404,14 @@ body::before {
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  padding: 4px 2px 8px;
+  /* break out of the panel's 14px x-padding so chips can scroll all
+     the way to the screen edge. matching internal padding gives the
+     first/last chip the same inset as everything else, and 14px
+     bottom padding leaves room for the box-shadow. */
+  margin: 0 -14px;
+  padding: 6px 14px 14px;
   border-bottom: 1px dashed var(--line);
+  scroll-padding: 14px;
 }
 .owned-strip::-webkit-scrollbar { display: none; }
 .owned-chip {
@@ -429,30 +441,46 @@ body::before {
 }
 
 /* ── shelf ─────────────────────────────────── */
+/* Layout: each <li> is a uniform 220px-tall slot so flex rows are even
+   and the shelf line lands cleanly under every row. The visible book
+   sits inside as <div class="spine">, with its own width and height
+   varied per book (clamped so the longest line still fits). */
 .shelf {
   list-style: none; margin: 0; padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-  gap: 14px 6px;                          /* row-gap leaves room for a shelf line */
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 4px;
 }
-/* Wooden shelf line under every row of books. The pattern is one row
-   (180px) plus the row-gap (14px) = 194px tall, with a 4px line painted
-   right at the row bottom. Repeats down the shelf as it grows. */
 .shelf.has-books {
   background-image: linear-gradient(to bottom,
     transparent 0,
-    transparent 180px,
-    var(--ink-soft) 180px,
-    var(--ink-soft) 184px,
-    transparent 184px,
-    transparent 194px);
-  background-size: 100% 194px;
+    transparent 220px,
+    var(--ink-soft) 220px,
+    var(--ink-soft) 224px,
+    transparent 224px,
+    transparent 234px);
+  background-size: 100% 234px;
   background-repeat: repeat-y;
   background-position: 0 0;
 }
 .shelf li {
-  height: 180px;                          /* uniform so shelf lines align */
+  flex: 0 0 auto;
+  height: 220px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0; margin: 0;
+  background: none; border: 0; box-shadow: none;
+}
+.shelf li.empty {
+  height: 90px;
+  width: 64px;
+  border: 1px dashed var(--line);
+  border-radius: 3px;
+}
+.shelf .spine {
+  /* width / height set inline per book */
   border-radius: 3px 3px 1px 1px;
   background: var(--accent);
   position: relative;
@@ -468,8 +496,6 @@ body::before {
   transform: rotate(180deg);
   letter-spacing: .02em;
   line-height: 1.18;
-  /* prefer word-boundary breaks, but allow mid-word break if a single
-     word is taller than the spine (e.g. "Procrastination") */
   overflow-wrap: anywhere;
   hyphens: auto;
   overflow: hidden;
@@ -479,19 +505,9 @@ body::before {
               0 2px 4px rgba(70,40,10,.18);
   transition: transform .1s;
 }
-.shelf li.long      { font-size: 10px; }
-.shelf li.very-long { font-size:  9px; }
-.shelf li:active    { transform: rotate(180deg) translateY(-2px); }
-.shelf li.empty {
-  background: transparent;
-  border: 1px dashed var(--line);
-  box-shadow: none;
-  color: var(--muted);
-  height: 90px;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0;
-}
+.shelf .spine.long      { font-size: 10px; }
+.shelf .spine.very-long { font-size:  9px; }
+.shelf li:active .spine { transform: rotate(180deg) translateY(-2px); }
 
 /* ── more / settings / prestige ────────────── */
 .block {

@@ -594,9 +594,9 @@ function renderHelpers() {
     li.innerHTML = `
       <div class="icon">${h.icon}</div>
       <div class="body">
-        <div class="name">${h.name}<span class="count">${owned}</span></div>
+        <div class="name">${h.name}<span class="count">${owned} owned</span></div>
         <div class="desc">${h.desc}</div>
-        <div class="meta-line">${fmt(h.wps)} w/s${state.upgrades['h_'+h.id] ? ' · ×2 trained' : ''}</div>
+        <div class="meta-line">${fmt(h.wps)} w/s${state.upgrades['h_'+h.id] ? ' · ×2' : ''}</div>
       </div>
       <div class="right">
         <span class="price"></span>
@@ -631,7 +631,7 @@ function renderUpgrades() {
     li.innerHTML = `
       <div class="icon">${u.icon}</div>
       <div class="body">
-        <div class="name">${u.name}<span class="count badge">${
+        <div class="name">${u.name}<span class="badge">${
           u.kind === 'tap' ? 'tap' : u.kind === 'mult' ? 'global' : 'helper'
         }</span></div>
         <div class="desc">${u.desc}</div>
@@ -706,18 +706,28 @@ function renderShelf() {
   const slice = state.books.slice(-200).reverse();
   for (const t of slice) {
     const li = document.createElement('li');
-    li.title = t;
-    // class drives font-size; max characters per pre-split "line" follows
-    let maxLen;
-    if (t.length > 30)      { li.classList.add('very-long'); maxLen = 14; }
-    else if (t.length > 22) { li.classList.add('long');      maxLen = 13; }
-    else                    {                                maxLen = 13; }
-    li.style.background = bookSpineColor(t);
+    const spine = document.createElement('div');
+    spine.className = 'spine';
+    spine.title = t;
+    spine.style.background = bookSpineColor(t);
+    // length tier picks font size and the splitter's per-line cap
+    let fontSize = 11, maxLen = 13;
+    if (t.length > 30)      { spine.classList.add('very-long'); fontSize = 9;  maxLen = 14; }
+    else if (t.length > 22) { spine.classList.add('long');      fontSize = 10; maxLen = 13; }
     const lines = splitSpineTitle(t, maxLen);
     for (let i = 0; i < lines.length; i++) {
-      if (i > 0) li.appendChild(document.createElement('br'));
-      li.appendChild(document.createTextNode(lines[i]));
+      if (i > 0) spine.appendChild(document.createElement('br'));
+      spine.appendChild(document.createTextNode(lines[i]));
     }
+    // height grows just enough to fit the longest line (≈ chars × char-advance
+    // + padding), with a small hash-based wiggle on top. capped at 220.
+    const longest = Math.max(1, ...lines.map(l => l.length));
+    const minH = Math.ceil(longest * fontSize * 1.18 + 24);
+    const h = Math.min(220, Math.max(160, minH + (hash(t) % 22)));
+    spine.style.height = h + 'px';
+    // gentle width variation so the shelf doesn't look gridded
+    spine.style.width = (62 + (hash(t + 'w') % 18)) + 'px';
+    li.appendChild(spine);
     shelfList.appendChild(li);
   }
 }
