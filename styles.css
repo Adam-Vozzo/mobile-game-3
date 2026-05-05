@@ -537,7 +537,7 @@ body.reduce-motion .orbiter            { animation: none; }
   cursor: pointer;
   display: grid; place-items: center;
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
   padding: 10px 6px;
   font-family: var(--serif);
@@ -555,8 +555,8 @@ body.reduce-motion .orbiter            { animation: none; }
               0 2px 4px rgba(70,40,10,.18);
   transition: transform .1s;
 }
-.shelf .spine.long      { font-size: 10px; }
-.shelf .spine.very-long { font-size:  9px; }
+.shelf .spine.long      { font-size: 11px; }
+.shelf .spine.very-long { font-size: 10px; }
 .shelf li:active .spine { transform: rotate(180deg) translateY(-2px); }
 
 /* ── more / settings / prestige ────────────── */

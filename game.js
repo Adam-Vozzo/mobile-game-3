@@ -621,9 +621,15 @@ function renderOrbiters() {
   }
   renderedWormCount = n;
 }
-/* Keep the ring centered on the book (not the stage) so the bottom
-   worms don't reach into the progress bar, and resize as the book
-   grows/shrinks across viewports. */
+/* Keep the ring centered on the book cover (not the button bounding box,
+   which has padding for the drop-shadow) so the worms hug the visible
+   cover edge instead of floating outside it. The cover rect lives at
+   x=28..212, y=32..200 in the SVG's 240x240 viewBox — i.e. cover width
+   is 184/240 of the button, cover height is 168/240, and the cover's
+   vertical center is at viewBox y=116. */
+const COVER_W_RATIO = 184 / 240;
+const COVER_H_RATIO = 168 / 240;
+const COVER_CY_RATIO = 116 / 240;
 function setupOrbitGeometry() {
   const stage = document.querySelector('.stage');
   if (!stage || !bookEl) return;
@@ -632,10 +638,13 @@ function setupOrbitGeometry() {
     const br = bookEl.getBoundingClientRect();
     if (sr.width <= 0 || br.width <= 0) return;
     const cx = Math.round(br.left - sr.left + br.width / 2);
-    const cy = Math.round(br.top  - sr.top  + br.height / 2);
+    const cy = Math.round(br.top  - sr.top  + br.height * COVER_CY_RATIO);
     document.documentElement.style.setProperty('--orbit-cx', cx + 'px');
     document.documentElement.style.setProperty('--orbit-cy', cy + 'px');
-    const baseR = Math.round(br.width / 2 + 4);       // ring 0 hugs the book
+    const coverHalfW = br.width  * COVER_W_RATIO / 2;
+    const coverHalfH = br.height * COVER_H_RATIO / 2;
+    // Circle that just clears the wider of the two cover dimensions.
+    const baseR = Math.round(Math.max(coverHalfW, coverHalfH) + 2);
     document.documentElement.style.setProperty('--orbit-r0', baseR + 'px');
     document.documentElement.style.setProperty('--orbit-r1', (baseR + 12) + 'px');
   };
@@ -798,9 +807,9 @@ function renderShelf() {
     spine.title = t;
     spine.style.background = bookSpineColor(t);
     // length tier picks font size and the splitter's per-line cap
-    let fontSize = 11, maxLen = 13;
-    if (t.length > 30)      { spine.classList.add('very-long'); fontSize = 9;  maxLen = 14; }
-    else if (t.length > 22) { spine.classList.add('long');      fontSize = 10; maxLen = 13; }
+    let fontSize = 12, maxLen = 13;
+    if (t.length > 30)      { spine.classList.add('very-long'); fontSize = 10; maxLen = 14; }
+    else if (t.length > 22) { spine.classList.add('long');      fontSize = 11; maxLen = 13; }
     const lines = splitSpineTitle(t, maxLen);
     for (let i = 0; i < lines.length; i++) {
       if (i > 0) spine.appendChild(document.createElement('br'));
