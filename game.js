@@ -306,6 +306,21 @@ function pendingKnowledge() {
   const target = Math.floor(Math.pow(Math.max(0, state.lifetime) / 1e6, 0.5));
   return Math.max(0, target - state.knowledge);
 }
+// lifetime needed for the next +1 knowledge beyond what's already pending
+function nextKnowledgeThreshold() {
+  const total = state.knowledge + pendingKnowledge() + 1;
+  return total * total * 1e6;
+}
+function lastKnowledgeThreshold() {
+  const total = state.knowledge + pendingKnowledge();
+  return total * total * 1e6; // 0 when total === 0
+}
+function knowledgeProgress() {
+  const last = lastKnowledgeThreshold();
+  const next = nextKnowledgeThreshold();
+  if (next <= last) return 1;
+  return Math.max(0, Math.min(1, (state.lifetime - last) / (next - last)));
+}
 function doPrestige() {
   const gain = pendingKnowledge();
   if (gain <= 0) return;
@@ -334,7 +349,7 @@ function completeBook() {
   const title = state.currentBookTitle || pickTitle();
   state.books.push(title);
   state.currentBookTitle = pickTitle();
-  toast(`📖 Finished: ${title}`, 'book');
+  bookToast('Just finished', title);
   haptic([0, 12, 30, 12]);
 }
 
@@ -442,6 +457,10 @@ const knowledgeLabel   = $('knowledgeLabel');
 const prestigePending  = $('prestigePending');
 const prestigeCurrent  = $('prestigeCurrent');
 const prestigeLifetime = $('prestigeLifetime');
+const prestigeBonus    = $('prestigeBonus');
+const prestigeNextLabel= $('prestigeNextLabel');
+const prestigeNextPct  = $('prestigeNextPct');
+const prestigeNextFill = $('prestigeNextFill');
 const prestigeBtn      = $('prestigeBtn');
 const helpersList      = $('helpersList');
 const upgradesList     = $('upgradesList');
@@ -696,8 +715,17 @@ function refreshAffordability() {
   prestigePending.textContent  = pend;
   prestigeCurrent.textContent  = state.knowledge;
   prestigeLifetime.textContent = fmt(state.lifetime);
+  prestigeBonus.textContent    = '+' + (state.knowledge * 2) + '%';
+  const nextAt = nextKnowledgeThreshold();
+  const prog   = knowledgeProgress();
+  const nextLabelText = (state.knowledge + pend) === 0
+    ? `First knowledge unlocks at ${fmt(nextAt)} lifetime words`
+    : `Next +1 knowledge at ${fmt(nextAt)} lifetime words`;
+  prestigeNextLabel.textContent = nextLabelText;
+  prestigeNextPct.textContent   = (prog * 100).toFixed(prog >= 1 ? 0 : 1) + '%';
+  prestigeNextFill.style.width  = (prog * 100).toFixed(2) + '%';
   prestigeBtn.disabled = pend <= 0;
-  prestigeBtn.textContent = pend > 0 ? `Re-read · +${pend}` : 'Re-read';
+  prestigeBtn.textContent = pend > 0 ? `Re-read · +${pend}` : 'Re-read (locked)';
 
   // tab glow if anything is freshly affordable in another tab
   const helperGlow = HELPERS.some(h => helperVisible(h) &&
@@ -800,8 +828,26 @@ function toast(msg, kind) {
   el.textContent = msg;
   toastsEl.appendChild(el);
   setTimeout(() => el.remove(), 3000);
-  // if there are too many, drop the oldest
-  while (toastsEl.children.length > 4) toastsEl.firstElementChild.remove();
+  // never let too many stack up
+  while (toastsEl.children.length > 3) toastsEl.firstElementChild.remove();
+}
+
+// Card-style notification used for book completions and the welcome message.
+function bookToast(kicker, title) {
+  const el = document.createElement('div');
+  el.className = 'toast card';
+  const ico = document.createElement('span');
+  ico.className = 'ico'; ico.textContent = '📖';
+  const wrap = document.createElement('div');
+  const k = document.createElement('div');
+  k.className = 'kicker'; k.textContent = kicker;
+  const t = document.createElement('div');
+  t.className = 'title'; t.textContent = title;
+  wrap.append(k, t);
+  el.append(ico, wrap);
+  toastsEl.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+  while (toastsEl.children.length > 3) toastsEl.firstElementChild.remove();
 }
 
 /* ── tabs ─────────────────────────────────── */
@@ -969,7 +1015,7 @@ function init() {
   if (had) applyOfflineProgress();
   displayedWords = state.words;
   if (!had) {
-    toast('Welcome. Tap the book to start reading.', 'book');
+    bookToast('Welcome', 'Tap the book to start reading.');
   }
   requestAnimationFrame(frame);
 }

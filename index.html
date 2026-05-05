@@ -84,6 +84,8 @@
 
   <div class="floaters" id="floaters" aria-hidden="true"></div>
 
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
   <div class="progress" aria-label="Current book progress">
     <div class="progress-meta">
       <span id="bookTitle">A New Book</span>
@@ -152,21 +154,34 @@
       <p class="muted">Knowledge, settings, and questionable life choices.</p>
     </div>
 
-    <div class="block">
-      <h3>Prestige: Re-read with new eyes</h3>
+    <div class="block prestige">
+      <h3>📖 Re-read with new eyes</h3>
       <p class="muted small">
-        Trade your library for permanent <b>Knowledge</b>. Each point grants
-        <b>+1%</b> to all production. Words, helpers, and tools reset; the books
-        you've finished stay on your shelf.
+        Reset your words, helpers, and upgrades to gain permanent
+        <b>Knowledge</b>. Each point grants <b>+2%</b> to all production —
+        forever. Your shelf and any knowledge you've already earned stay
+        with you.
       </p>
-      <div class="prestige-row">
-        <div>
-          <div class="meta-row"><span>Pending knowledge</span><b id="prestigePending">0</b></div>
-          <div class="meta-row"><span>Current knowledge</span><b id="prestigeCurrent">0</b></div>
-          <div class="meta-row small muted">
-            <span>Lifetime words</span><span id="prestigeLifetime">0</span>
-          </div>
+      <p class="muted small">
+        Your <b>first knowledge</b> unlocks at <b>1,000,000 lifetime words</b>.
+        After that the cost grows: <b>+2</b> needs 4M, <b>+3</b> needs 9M,
+        <b>+10</b> needs 100M. The longer you wait between re-reads, the
+        more knowledge you'll bank in one go.
+      </p>
+      <div class="prestige-stats">
+        <div class="meta-row"><span>Knowledge bonus</span><b id="prestigeBonus">+0%</b></div>
+        <div class="meta-row"><span>Owned</span><b id="prestigeCurrent">0</b></div>
+        <div class="meta-row"><span>Pending if you re-read now</span><b id="prestigePending">0</b></div>
+        <div class="meta-row small muted"><span>Lifetime words</span><span id="prestigeLifetime">0</span></div>
+        <div class="meta-row small muted">
+          <span id="prestigeNextLabel">Next +1 knowledge at 1.0M lifetime</span>
+          <span id="prestigeNextPct">0%</span>
         </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="prestigeNextFill"></div>
+        </div>
+      </div>
+      <div class="row">
         <button class="btn primary" id="prestigeBtn" disabled>Re-read</button>
       </div>
     </div>
@@ -205,8 +220,6 @@
     </div>
   </div>
 </section>
-
-<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
 
 <dialog id="ioDialog" class="io">
   <form method="dialog">

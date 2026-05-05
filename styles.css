@@ -432,31 +432,42 @@ body::before {
 
 /* ── shelf ─────────────────────────────────── */
 .shelf {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
-  gap: 4px;
+  list-style: none; margin: 0; padding: 0 0 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 14px 6px;                /* vertical gap leaves room between shelves */
   align-items: end;
-  border-bottom: 4px solid var(--ink-soft);
-  padding-bottom: 6px;
+  /* a repeating wooden shelf line every row */
+  background-image: linear-gradient(
+    to bottom,
+    transparent calc(100% - 4px),
+    var(--ink-soft) calc(100% - 4px),
+    var(--ink-soft) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 .shelf li {
-  height: 96px;
+  height: 150px;
   border-radius: 3px 3px 1px 1px;
   background: var(--accent);
   position: relative;
   cursor: pointer;
   display: grid; place-items: center;
   color: #fff;
-  font-size: 9px;
+  font-size: 12px;
   text-align: center;
-  padding: 6px 4px;
+  padding: 10px 6px;
   font-family: var(--serif);
+  font-weight: 600;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  letter-spacing: .03em;
+  letter-spacing: .02em;
+  line-height: 1.15;
   overflow: hidden;
   border: 1px solid rgba(0,0,0,.18);
-  box-shadow: inset 1px 0 0 rgba(255,255,255,.18), inset -1px 0 0 rgba(0,0,0,.2);
+  box-shadow: inset 1px 0 0 rgba(255,255,255,.18),
+              inset -1px 0 0 rgba(0,0,0,.22),
+              0 2px 4px rgba(70,40,10,.18);
   transition: transform .1s;
 }
 .shelf li:active { transform: rotate(180deg) translateY(-2px); }
@@ -464,7 +475,10 @@ body::before {
   background: transparent;
   border: 1px dashed var(--line);
   color: var(--muted);
-  height: 60px;
+  height: 90px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
 }
 
 /* ── more / settings / prestige ────────────── */
@@ -498,6 +512,18 @@ body::before {
 .prestige-row {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   margin-top: 8px;
+}
+.prestige-stats {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: grid; gap: 2px;
+}
+.prestige-stats .progress-track { margin-top: 6px; height: 6px; }
+.prestige-stats .progress-fill {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
 }
 
 .btn {
@@ -542,15 +568,22 @@ input[type="checkbox"] {
 }
 
 /* ── toasts ────────────────────────────────── */
+/* Anchored to the bottom of the stage (just above the progress bar) so
+   they never cover the stat counter at the top. Newer toasts appear at
+   the bottom; older ones drift up as new ones arrive. */
 .toasts {
-  position: fixed;
-  top: calc(var(--safe-top) + 6px);
-  left: 50%; transform: translateX(-50%);
-  display: grid; gap: 6px;
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 76px;                     /* sits just above the progress bar */
+  display: flex; flex-direction: column;
+  gap: 6px;
+  align-items: center;
   z-index: 10;
   pointer-events: none;
-  width: min(92vw, 480px);
+  padding: 0 12px;
 }
+@media (max-height: 600px) { .toasts { bottom: 12px; } }
+
 .toast {
   background: var(--paper);
   color: var(--ink);
@@ -559,18 +592,77 @@ input[type="checkbox"] {
   padding: 8px 14px;
   font-size: 13px;
   box-shadow: var(--shadow-lg);
-  animation: toastIn 220ms cubic-bezier(.2,.8,.2,1) forwards, toastOut 320ms ease-in 2.6s forwards;
+  animation: toastIn 240ms cubic-bezier(.2,.8,.2,1.05) forwards,
+             toastOut 320ms ease-in 2.5s forwards;
   text-align: center;
   font-family: var(--serif);
   display: flex; gap: 8px; align-items: center; justify-content: center;
+  max-width: min(92vw, 460px);
 }
-.toast.book { background: var(--accent); color: #fff; border-color: transparent; }
-.toast.achievement { background: var(--ink); color: var(--paper); border-color: transparent; }
-@media (prefers-color-scheme: dark) {
-  .toast.book { color: #1a1410; }
+.toast.achievement {
+  background: var(--ink); color: var(--paper); border-color: transparent;
 }
-@keyframes toastIn  { from { opacity: 0; transform: translateY(-8px) scale(.96); } to { opacity: 1; transform: none; } }
-@keyframes toastOut { to   { opacity: 0; transform: translateY(-6px) scale(.98); } }
+
+/* Card-style notification for book completion / welcome */
+.toast.card {
+  background: linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 10px 14px 10px 10px;
+  display: flex; gap: 12px; align-items: center;
+  text-align: left;
+  font-family: var(--sans);
+  box-shadow: var(--shadow-lg);
+  animation: toastCardIn 320ms cubic-bezier(.2,.8,.2,1.1) forwards,
+             toastOut 360ms ease-in 3s forwards;
+  position: relative;
+}
+.toast.card::before {
+  /* a thin gold ribbon down the left edge */
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.toast.card .ico {
+  width: 38px; height: 38px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 20px;
+  flex: 0 0 auto;
+  box-shadow: 0 2px 0 rgba(0,0,0,.15) inset, 0 4px 10px rgba(70,40,10,.18);
+}
+@media (prefers-color-scheme: dark) { .toast.card .ico { color: #1a1410; } }
+.toast.card .kicker {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1;
+}
+.toast.card .title {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-top: 3px;
+  /* clamp very long titles */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@keyframes toastIn      { from { opacity: 0; transform: translateY(10px) scale(.96); }
+                          to   { opacity: 1; transform: none; } }
+@keyframes toastCardIn  { from { opacity: 0; transform: translateY(14px) scale(.94); }
+                          to   { opacity: 1; transform: none; } }
+@keyframes toastOut     { to   { opacity: 0; transform: translateY(-4px) scale(.98); } }
 
 /* ── dialog ───────────────────────────────── */
 dialog.io {
