@@ -173,6 +173,52 @@ body::before {
   position: absolute; inset: 0;
   pointer-events: none; overflow: hidden;
 }
+
+/* ── orbiting bookworms ────────────────────── */
+/* A ring of bookworms around the book. Each is parked at its angle on
+   the ring and takes a brief nudge toward the book, with delays
+   staggered so the ring fires like a wave (the way Cookie Clicker's
+   cursors do). The ring radius lives on a CSS variable that JS keeps
+   matched to the book's actual rendered size. */
+.orbiters {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.orbiter {
+  position: absolute;
+  top: 50%; left: 50%;
+  font-size: 20px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.35));
+  will-change: transform;
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--angle, 0deg))
+    translateY(calc(-1 * var(--orbit-r, 150px)))
+    rotate(calc(-1 * var(--angle, 0deg)));
+  animation: orbiterNudge var(--dur, 1.6s) ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes orbiterNudge {
+  0%, 88%, 100% {
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle, 0deg))
+      translateY(calc(-1 * var(--orbit-r, 150px)))
+      rotate(calc(-1 * var(--angle, 0deg)));
+  }
+  93% {
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle, 0deg))
+      translateY(calc(-1 * (var(--orbit-r, 150px) - 16px)))
+      scale(1.18)
+      rotate(calc(-1 * var(--angle, 0deg)));
+  }
+}
+@media (prefers-reduced-motion: reduce) { .orbiter { animation: none; } }
+body.reduce-motion .orbiter            { animation: none; }
 .floater {
   position: absolute;
   font-family: var(--serif);

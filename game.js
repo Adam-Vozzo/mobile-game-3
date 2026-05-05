@@ -517,6 +517,7 @@ const helpersList      = $('helpersList');
 const upgradesList     = $('upgradesList');
 const shelfList        = $('shelfList');
 const floatersEl       = $('floaters');
+const orbitersEl       = $('orbiters');
 const bookEl           = $('book');
 const toastsEl         = $('toasts');
 
@@ -562,6 +563,50 @@ function rebuildLists() {
   renderUpgrades();
   renderOwned();
   renderShelf();
+  renderOrbiters();
+}
+
+/* ── bookworm orbiters ────────────────────── */
+/* Ring of bookworms around the book that take turns nudging inward,
+   like Cookie Clicker's cursors. Capped at 20 visible. */
+const ORBIT_DUR = 1.6;
+const ORBIT_MAX = 20;
+let orbiterCount = -1;
+function renderOrbiters() {
+  if (!orbitersEl) return;
+  const n = Math.min(ORBIT_MAX, helperCount('worm'));
+  if (n === orbiterCount) return;
+  orbiterCount = n;
+  orbitersEl.innerHTML = '';
+  if (n === 0) return;
+  for (let i = 0; i < n; i++) {
+    const ang = (i / n) * 360;
+    const delay = (i / n) * ORBIT_DUR;
+    const el = document.createElement('div');
+    el.className = 'orbiter';
+    el.textContent = '🪱';
+    el.style.setProperty('--angle', ang.toFixed(2) + 'deg');
+    el.style.setProperty('--delay', delay.toFixed(3) + 's');
+    el.style.setProperty('--dur',   ORBIT_DUR + 's');
+    orbitersEl.appendChild(el);
+  }
+}
+function setupOrbitRadius() {
+  const apply = (w) => {
+    if (w > 0) {
+      // ring sits a touch outside the book's edge
+      document.documentElement.style.setProperty('--orbit-r',
+        Math.round(w / 2 + 22) + 'px');
+    }
+  };
+  apply(bookEl.getBoundingClientRect().width);
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(es => { for (const e of es) apply(e.contentRect.width); })
+      .observe(bookEl);
+  } else {
+    window.addEventListener('resize',
+      () => apply(bookEl.getBoundingClientRect().width));
+  }
 }
 
 function renderHelpers() {
@@ -605,6 +650,7 @@ function renderHelpers() {
       if (buyHelper(h)) {
         renderHelpers(); // owned/count changed
         renderUpgrades(); // new helper-mult upgrades may unlock
+        if (h.id === 'worm') renderOrbiters();
       }
     });
     helpersList.appendChild(li);
@@ -1097,6 +1143,7 @@ function init() {
   bindToggle('setHaptics', 'haptics');
   bindToggle('setReduceMotion', 'reduceMotion');
   bindToggle('setFloaters', 'floaters');
+  setupOrbitRadius();
   rebuildLists();
   if (had) applyOfflineProgress();
   displayedWords = state.words;
